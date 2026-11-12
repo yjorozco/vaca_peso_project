@@ -10,7 +10,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.apps import apps
+import ssl
 
+# 👉 PONLO AQUÍ (al principio de todo)
+ssl._create_default_https_context = ssl._create_unverified_context
 from .forms import ImagenVacaForm
 
 transform_normalizacion = transforms.Compose([
