@@ -19,6 +19,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     dos2unix \
     && rm -rf /var/lib/apt/lists/*
 
+
+
+RUN mkdir -p /root/.torch/iopath_cache/detectron2/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/ && \
+    curl -k -L "https://dl.fbaipublicfiles.com/detectron2/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl" \
+    -o /root/.torch/iopath_cache/detectron2/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl
 # setuptools<70 asegura la disponibilidad de pkg_resources para Detectron2
 RUN pip install --no-cache-dir --upgrade pip "setuptools<70" wheel
 
