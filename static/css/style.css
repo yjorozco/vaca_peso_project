@@ -1,0 +1,441 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+/* =======================================================
+   1. VARIABLES Y CONFIGURACIÓN GLOBAL
+   ======================================================= */
+:root {
+    --primary-dark: #0b2f24;
+    --primary-main: #114b3a;
+    --accent-green: #10b981;
+    --accent-hover: #059669;
+    --accent-light: #ecfdf5;
+    --accent-border: #a7f3d0;
+    --surface-bg: #f8faf9;
+    --card-bg: #ffffff;
+    --text-heading: #0f172a;
+    --text-body: #475569;
+    --text-muted: #94a3b8;
+    --border-color: #e2e8f0;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+body {
+    background-color: var(--surface-bg);
+    color: var(--text-body);
+    line-height: 1.5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* =======================================================
+   2. BARRA DE NAVEGACIÓN INSTITUCIONAL
+   ======================================================= */
+.navbar-cattlytics {
+    background-color: #ffffff;
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: var(--shadow-sm);
+}
+
+.nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1350px;
+    margin: 0 auto;
+    padding: 0.6rem 2rem;
+    gap: 20px;
+}
+
+.nav-left, .nav-right {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.nav-left {
+    justify-content: flex-start;
+}
+
+.nav-right {
+    justify-content: flex-end;
+    gap: 16px;
+}
+
+.logo-inst {
+    height: 48px;
+    width: auto;
+    object-fit: contain;
+    display: block;
+}
+
+.nav-center {
+    flex: 2;
+    text-align: center;
+}
+
+.main-system-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--text-heading);
+    margin: 0;
+    letter-spacing: -0.3px;
+    white-space: nowrap;
+}
+
+/* Píldora de Operador y Cerrar Sesión */
+.user-pill-container {
+    display: inline-flex;
+    align-items: center;
+    background-color: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 9999px;
+    padding: 0.3rem 0.4rem 0.3rem 0.85rem;
+    gap: 10px;
+    white-space: nowrap;
+}
+
+.user-label {
+    font-size: 0.8rem;
+    color: var(--text-body);
+}
+
+.user-label strong {
+    color: var(--text-heading);
+}
+
+.btn-logout-pill {
+    background-color: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+    padding: 0.25rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 9999px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-logout-pill:hover {
+    background-color: #ef4444;
+    color: #ffffff;
+    border-color: #ef4444;
+}
+
+/* =======================================================
+   3. CONTENEDORES Y TARJETAS
+   ======================================================= */
+.container {
+    max-width: 1050px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem;
+    flex: 1;
+}
+
+.hero-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.eyebrow-pill {
+    display: inline-flex;
+    align-items: center;
+    background: var(--accent-light);
+    color: var(--primary-main);
+    border: 1px solid var(--accent-border);
+    padding: 0.35rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.85rem;
+}
+
+.hero-title {
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: var(--text-heading);
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    margin-bottom: 0.75rem;
+}
+
+.hero-subtitle {
+    font-size: 1.05rem;
+    color: var(--text-body);
+    max-width: 650px;
+    margin: 0 auto;
+}
+
+/* =======================================================
+   4. FORMULARIO DE ACCESO (LOGIN)
+   ======================================================= */
+/* 1. Limitar el ancho de la tarjeta de login */
+.login-card,
+.login-wrapper,
+form[method="post"] {
+    max-width: 400px !important;
+    margin: 2rem auto !important;
+}
+
+/* Si está dentro de una cattlytics-card en el login */
+.container:has(input[type="password"]) .cattlytics-card,
+body:has(input[type="password"]) .cattlytics-card {
+    max-width: 400px !important;
+    margin: 2rem auto !important;
+    padding: 2.2rem !important;
+}
+
+/* 2. Dar altura real y espacio interno (padding) a los campos */
+input[type="text"],
+input[type="password"] {
+    width: 100% !important;
+    height: 48px !important;              /* Altura cómoda y moderna */
+    padding: 0.75rem 1rem !important;     /* Relleno interior para que no se vea aplastado */
+    font-size: 1rem !important;
+    line-height: 1.5 !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 10px !important;
+    box-sizing: border-box !important;
+    display: block !important;
+    margin-top: 0.4rem !important;
+    margin-bottom: 1.2rem !important;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+    border-color: #10b981 !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
+}
+
+/* 3. Separación de las etiquetas (labels) */
+form label {
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    color: #1e293b !important;
+    display: block !important;
+}
+
+/* 4. Altura y proporción del botón */
+button[type="submit"],
+.btn-login {
+    width: 100% !important;
+    height: 48px !important;
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    border-radius: 9999px !important;
+    margin-top: 0.5rem !important;
+    cursor: pointer !important;
+}
+
+/* =======================================================
+   5. ÁREA DE CARGA DE FOTO (SUBIR IMAGEN)
+   ======================================================= */
+.cattlytics-card {
+    max-width: 680px;
+    margin: 1.5rem auto;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1.75rem;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.2s ease;
+}
+
+.upload-dropzone {
+    border: 2px dashed #38bdf8;
+    background: #f8fafc;
+    border-radius: 14px;
+    padding: 1.8rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+    margin-bottom: 1.25rem;
+}
+
+.upload-dropzone:hover {
+    border-color: #0284c7;
+    background-color: #f0f9ff;
+}
+
+.upload-icon {
+    font-size: 2.2rem;
+    margin-bottom: 0.4rem;
+    color: var(--primary-main);
+}
+
+.upload-text-main {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-heading);
+}
+
+.upload-text-sub {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+.btn-cta {
+    background-color: var(--accent-green);
+    color: #ffffff !important;
+    padding: 0.75rem 1.4rem;
+    border-radius: 9999px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-decoration: none;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.25);
+    transition: all 0.2s ease;
+}
+
+.btn-cta:hover {
+    background-color: var(--accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.35);
+}
+
+/* =======================================================
+   6. RESULTADOS DEL MODELO (DIAGNÓSTICO BIOMÉTRICO)
+   ======================================================= */
+.result-panel {
+    margin-top: 2rem;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+}
+
+.result-header {
+    background: var(--primary-dark);
+    color: #ffffff;
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.result-header h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.result-body {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .result-body {
+        grid-template-columns: 1fr;
+    }
+    .main-system-title {
+        font-size: 1rem;
+        white-space: normal;
+    }
+}
+
+.preview-box img {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    object-fit: cover;
+    max-height: 280px;
+}
+
+.kpi-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.kpi-metric-card {
+    background: var(--surface-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 0.85rem 1.15rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.kpi-metric-card .label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.kpi-metric-card .val {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-heading);
+}
+
+.weight-hero-card {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary-main));
+    color: #ffffff;
+    border-radius: 14px;
+    padding: 1.25rem;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(17, 75, 58, 0.2);
+}
+
+.weight-hero-card .label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--accent-border);
+    text-transform: uppercase;
+}
+
+.weight-hero-card .val {
+    font-size: 2.8rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: #ffffff;
+    margin: 0.2rem 0;
+}
+
+.weight-hero-card .val span {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--accent-green);
+    margin-left: 0.2rem;
+}
+
+/* =======================================================
+   7. PIE DE PÁGINA
+   ======================================================= */
+.footer {
+    background: #ffffff;
+    border-top: 1px solid var(--border-color);
+    padding: 1.25rem 0;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: auto;
+}

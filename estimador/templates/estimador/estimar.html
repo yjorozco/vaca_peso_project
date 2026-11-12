@@ -1,0 +1,73 @@
+{% extends 'estimador/base.html' %}
+{% block title %}Estimación de Peso Vivo | BovinoWeight{% endblock %}
+
+{% block content %}
+<div class="hero-header">
+    <span class="eyebrow-pill">Visión Monocular & Deep Learning</span>
+    <h1 class="hero-title">Estimación de Peso en Tiempo Real</h1>
+    <p class="hero-subtitle">
+        Procese imágenes laterales mediante Detectron2, profundidad métrica con UniDepth y regresión condicional FiLM.
+    </p>
+</div>
+
+<div class="cattlytics-card">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="upload-dropzone" onclick="document.getElementById('id_imagen').click();">
+            <div class="upload-icon">📷</div>
+            <div class="upload-text-main">Haga clic o arrastre una imagen lateral de la vaca</div>
+            <div class="upload-text-sub">Formatos admitidos: JPG, PNG, JPEG</div>
+            <div class="input-file-hidden">
+                {{ form.imagen }}
+            </div>
+        </div>
+
+        <button type="submit" class="btn-cta" style="width: 100%; justify-content: center; font-size: 1rem; padding: 0.85rem;">
+            Ejecutar Diagnóstico y Pesaje Automático
+        </button>
+    </form>
+</div>
+
+{% if resultado %}
+<div class="result-panel">
+    <div class="result-header">
+        <h3>Diagnóstico Biométrico Procesado</h3>
+        <span class="user-tag" style="background: rgba(255,255,255,0.15); color: #fff; border: none;">
+            Inferencia en Memoria
+        </span>
+    </div>
+    
+    <div class="result-body">
+        <div class="preview-box">
+            <img src="{{ resultado.imagen_url }}" alt="Bovino evaluado">
+        </div>
+        
+        <div class="kpi-container">
+            {% if resultado.peso_kg %}
+                <div class="weight-hero-card">
+                    <div class="label">Peso Estimado Final</div>
+                    <div class="val">{{ resultado.peso_kg }} <span>kg</span></div>
+                    <p style="font-size: 0.85rem; color: #d1fae5; margin-top: 0.4rem;">{{ resultado.obs }}</p>
+                </div>
+            {% else %}
+                <div class="weight-hero-card" style="background: #991b1b;">
+                    <div class="label">Alerta de Postura</div>
+                    <div class="val" style="font-size: 1.8rem;">No Apto</div>
+                    <p style="font-size: 0.85rem; color: #fee2e2; margin-top: 0.4rem;">{{ resultado.obs }}</p>
+                </div>
+            {% endif %}
+
+            <div class="kpi-metric-card">
+                <span class="label">Postura Clasificada</span>
+                <span class="val">{{ resultado.postura }}</span>
+            </div>
+
+            <div class="kpi-metric-card">
+                <span class="label">Distancia al Sujeto</span>
+                <span class="val">{{ resultado.distancia }} m</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BovinoWeight | Escuela de Computación UCV{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <header class="navbar-cattlytics">
+        <div class="nav-container">
+            <!-- Izquierda: Escudo UCV -->
+            <div class="nav-left">
+                <img src="{% static 'img/logo_ucv.png' %}" alt="Logo UCV" class="logo-inst">
+            </div>
+
+            <!-- Centro: Título legible -->
+            <div class="nav-center">
+                <h1 class="main-system-title">Sistema de Estimación de Peso Ganadero</h1>
+            </div>
+
+            <!-- Derecha: Sesión estilizada + Logo Escuela -->
+            <div class="nav-right">
+                {% if user.is_authenticated %}
+                    <div class="user-pill-container">
+                        <span class="user-label">Operador: <strong>{{ user.username }}</strong></span>
+                        <a href="{% url 'logout' %}" class="btn-logout-pill">Cerrar Sesión</a>
+                    </div>
+                {% endif %}
+                <img src="{% static 'img/logo_computacion_ucv.png' %}" alt="Logo Escuela de Computación UCV" class="logo-inst">
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        {% block content %}
+        {% endblock %}
+    </main>
+</body>
+</html>

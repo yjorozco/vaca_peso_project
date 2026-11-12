@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: bovinoweight_app
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - ./media:/app/media
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TORCH_HUB_TRUSTED_REPOS=lpiccinelli-eth/UniDepth
+    restart: unless-stopped

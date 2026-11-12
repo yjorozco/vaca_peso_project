@@ -1,0 +1,51 @@
+{% extends 'estimador/base.html' %}
+{% block title %}Historial de Registros | BovinoWeight{% endblock %}
+
+{% block content %}
+<div class="hero-header">
+    <span class="eyebrow-pill">Base de Datos SQLite</span>
+    <h1 class="hero-title">Historial de Pesajes</h1>
+    <p class="hero-subtitle">Consulte todas las muestras procesadas y las inferencias generadas.</p>
+</div>
+
+<div class="cattlytics-card">
+    <div class="table-responsive">
+        <table class="cattlytics-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Fecha</th>
+                    <th>Postura</th>
+                    <th>Distancia</th>
+                    <th>Peso (kg)</th>
+                    <th>Diagnóstico</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in registros %}
+                <tr>
+                    <td>#{{ r.id }}</td>
+                    <td>{{ r.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                    <td><strong>{{ r.postura_detectada }}</strong></td>
+                    <td>{{ r.distancia_metros }} m</td>
+                    <td>
+                        {% if r.peso_estimado_kg %}
+                            <span class="val" style="color: var(--primary-main); font-weight: 700;">{{ r.peso_estimado_kg }} kg</span>
+                        {% else %}
+                            <span style="color: #94a3b8;">—</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ r.observaciones }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                        No existen pesajes registrados todavía.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
