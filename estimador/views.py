@@ -20,9 +20,12 @@ transform_normalizacion = transforms.Compose([
 
 def procesar_pipeline_peso(uploaded_file):
     """
-    Procesa la imagen en memoria:
-    1. Máscara con Detectron2 -> 2. Enmascaramiento RGB -> 3. Clasificación Postura
-    -> 4. Profundidad UniDepth + Máscara -> 5. Regresión FiLM.
+    Procesa la imagen directamente en memoria:
+    1. Segmentación con Detectron2 (máscara de silueta)
+    2. Enmascaramiento de imagen RGB
+    3. Clasificación de postura
+    4. Profundidad métrica con UniDepth (resolución múltiplo de 14) + enmascaramiento
+    5. Regresión condicional FiLM según postura
     """
     config = apps.get_app_config('estimador')
     device = config.device
@@ -75,7 +78,16 @@ def procesar_pipeline_peso(uploaded_file):
                 if config.unidepth_model is not None:
                     try:
                         config.unidepth_model.eval()
-                        rgb_tensor_unidepth = transforms.ToTensor()(imagen_pil).unsqueeze(0).to(device)
+                        # Redimensionar a múltiplo exacto de 14 para evitar shape mismatch en einops
+                        w_orig, h_orig = imagen_pil.size
+                        if w_orig >= h_orig:
+                            target_size = (672, 448)  # (ancho, alto) -> 48x32 patches
+                        else:
+                            target_size = (448, 672)
+
+                        imagen_unidepth = imagen_pil.resize(target_size, Image.Resampling.BILINEAR)
+                        rgb_tensor_unidepth = transforms.ToTensor()(imagen_unidepth).unsqueeze(0).to(device)
+
                         predictions = config.unidepth_model.infer(rgb_tensor_unidepth)
                         depth_map_native = predictions["depth"].squeeze().cpu().numpy()
 
