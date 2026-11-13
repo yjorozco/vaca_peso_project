@@ -1,4 +1,3 @@
-import os
 import base64
 import numpy as np
 import cv2
@@ -6,7 +5,7 @@ import torch
 from PIL import Image
 from torchvision import transforms
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.apps import apps
@@ -18,9 +17,12 @@ transform_normalizacion = transforms.Compose([
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
 
+
 def procesar_pipeline_peso(uploaded_file):
     """
-    Procesa la imagen directamente en memoria sin escribir en disco ni BD.
+    Procesa la imagen en memoria:
+    1. Máscara con Detectron2 -> 2. Enmascaramiento RGB -> 3. Clasificación Postura
+    -> 4. Profundidad UniDepth + Máscara -> 5. Regresión FiLM.
     """
     config = apps.get_app_config('estimador')
     device = config.device
@@ -30,7 +32,7 @@ def procesar_pipeline_peso(uploaded_file):
     imagen_pil_resized = imagen_pil.resize((224, 224), Image.Resampling.BILINEAR)
     imagen_np_uint8 = np.array(imagen_pil_resized)
 
-    # 2. Segmentación con Detectron2
+    # 2. Segmentación con Detectron2 (Clase 19 = cow en COCO)
     mask_binaria = np.ones((224, 224), dtype=bool)
     if config.detectron_predictor is not None:
         try:
@@ -47,61 +49,66 @@ def procesar_pipeline_peso(uploaded_file):
         except Exception as e:
             print(f"Error en Detectron2: {e}")
 
-    # 3. Profundidad métrica con UniDepth
-    distancia_medida = 3.0
-    if config.unidepth_model is not None:
-        try:
-            with torch.no_grad():
-                rgb_tensor_unidepth = transforms.ToTensor()(imagen_pil).unsqueeze(0).to(device)
-                predictions = config.unidepth_model.infer(rgb_tensor_unidepth)
-                depth_map_native = predictions["depth"].squeeze().cpu().numpy()
-
-            depth_map = cv2.resize(depth_map_native, (224, 224), interpolation=cv2.INTER_LINEAR)
-            mask_indices = mask_binaria > 0
-            if np.any(mask_indices):
-                distancia_medida = float(np.median(depth_map[mask_indices]))
-            else:
-                distancia_medida = float(np.median(depth_map))
-        except Exception as e:
-            print(f"Error en UniDepth: {e}")
-
-    # 4. Enmascaramiento Bitwise AND
-    image_original_pil_resized_lanczos = imagen_pil.resize((224, 224), Image.LANCZOS).convert('RGB')
-    image_np_rgb_lanczos = np.array(image_original_pil_resized_lanczos)
-    mask_binary_3ch_cv = cv2.cvtColor(mask_binaria.astype(np.uint8) * 255, cv2.COLOR_GRAY2BGR)
-    masked_color_np = cv2.bitwise_and(image_np_rgb_lanczos, mask_binary_3ch_cv)
+    # 3. Enmascaramiento RGB (Bitwise AND)
+    image_resized_lanczos = imagen_pil.resize((224, 224), Image.Resampling.LANCZOS).convert('RGB')
+    image_np_rgb_lanczos = np.array(image_resized_lanczos)
+    mask_binary_3ch = cv2.cvtColor(mask_binaria.astype(np.uint8) * 255, cv2.COLOR_GRAY2RGB)
+    masked_color_np = cv2.bitwise_and(image_np_rgb_lanczos, mask_binary_3ch)
     imagen_final_pil = Image.fromarray(masked_color_np)
 
     x_img = transform_normalizacion(imagen_final_pil).unsqueeze(0).to(device)
 
-    # 5. Inferencia Postura y Regresión FiLM
+    # 4. Clasificación de Postura, Profundidad Métrica y Regresión FiLM
     peso_final_kg = None
-    nombre_postura = "Postura 0"
-    obs = "Procesado"
+    distancia_medida = 3.0
+    nombre_postura = "No determinada"
+    obs = "Error: Modelo de postura no disponible"
 
     if config.detector_postura is not None:
+        config.detector_postura.eval()
         with torch.no_grad():
             pred_postura = config.detector_postura(x_img)
             clase_postura = torch.argmax(pred_postura, dim=1).item()
 
-            if clase_postura == 0:
-                nombre_postura = "Postura 0"
-                media_train, std_train = 3.4006968412734224, 1.0542972617476725
-                dist_std = (distancia_medida - media_train) / (std_train + 1e-8)
-                dist_tensor = torch.tensor([[dist_std]], dtype=torch.float32).to(device)
-                if config.regresor_a is not None:
-                    peso_estimado = config.regresor_a(x_img, dist_tensor)
-                    peso_final_kg = round(float(peso_estimado.item()), 2)
-                    obs = "Estimado exitosamente con regresor Postura 0"
-            elif clase_postura == 3:
-                nombre_postura = "Postura 3"
-                media_train, std_train = 4.251978052116183, 1.3484686672778392
-                dist_std = (distancia_medida - media_train) / (std_train + 1e-8)
-                dist_tensor = torch.tensor([[dist_std]], dtype=torch.float32).to(device)
-                if config.regresor_b is not None:
-                    peso_estimado = config.regresor_b(x_img, dist_tensor)
-                    peso_final_kg = round(float(peso_estimado.item()), 2)
-                    obs = "Estimado exitosamente con regresor Postura 3"
+            if clase_postura in (0, 3):
+                # Calcular profundidad con UniDepth solo si la postura es válida
+                if config.unidepth_model is not None:
+                    try:
+                        config.unidepth_model.eval()
+                        rgb_tensor_unidepth = transforms.ToTensor()(imagen_pil).unsqueeze(0).to(device)
+                        predictions = config.unidepth_model.infer(rgb_tensor_unidepth)
+                        depth_map_native = predictions["depth"].squeeze().cpu().numpy()
+
+                        depth_map = cv2.resize(depth_map_native, (224, 224), interpolation=cv2.INTER_LINEAR)
+                        mask_indices = mask_binaria > 0
+                        if np.any(mask_indices):
+                            distancia_medida = float(np.median(depth_map[mask_indices]))
+                        else:
+                            distancia_medida = float(np.median(depth_map))
+                    except Exception as e:
+                        print(f"Error en UniDepth: {e}")
+
+                if clase_postura == 0:
+                    nombre_postura = "Postura 0"
+                    media_train, std_train = 3.4006968412734224, 1.0542972617476725
+                    dist_std = (distancia_medida - media_train) / (std_train + 1e-8)
+                    dist_tensor = torch.tensor([[dist_std]], dtype=torch.float32).to(device)
+                    if config.regresor_a is not None:
+                        config.regresor_a.eval()
+                        peso_estimado = config.regresor_a(x_img, dist_tensor)
+                        peso_final_kg = round(float(peso_estimado.item()), 2)
+                        obs = "Estimado exitosamente con regresor Postura 0"
+
+                elif clase_postura == 3:
+                    nombre_postura = "Postura 3"
+                    media_train, std_train = 4.251978052116183, 1.3484686672778392
+                    dist_std = (distancia_medida - media_train) / (std_train + 1e-8)
+                    dist_tensor = torch.tensor([[dist_std]], dtype=torch.float32).to(device)
+                    if config.regresor_b is not None:
+                        config.regresor_b.eval()
+                        peso_estimado = config.regresor_b(x_img, dist_tensor)
+                        peso_final_kg = round(float(peso_estimado.item()), 2)
+                        obs = "Estimado exitosamente con regresor Postura 3"
             else:
                 nombre_postura = f"Otra ({clase_postura})"
                 obs = "Advertencia: Postura no apta para estimación de peso"
@@ -112,6 +119,7 @@ def procesar_pipeline_peso(uploaded_file):
         "peso_kg": peso_final_kg,
         "observaciones": obs
     }
+
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -126,9 +134,11 @@ def login_view(request):
         form = AuthenticationForm()
     return render(request, 'estimador/login.html', {'form': form})
 
+
 def logout_view(request):
     logout(request)
     return redirect('login')
+
 
 @login_required
 def estimar_view(request):
@@ -137,7 +147,7 @@ def estimar_view(request):
         form = ImagenVacaForm(request.POST, request.FILES)
         if form.is_valid():
             archivo_imagen = request.FILES['imagen']
-            
+
             # Ejecutar pipeline directo desde memoria
             res = procesar_pipeline_peso(archivo_imagen)
 
